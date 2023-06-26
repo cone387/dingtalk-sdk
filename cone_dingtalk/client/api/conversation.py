@@ -1,16 +1,16 @@
-from cone_dingtalk.client.api.base import DingTalkBaseAPI
+from cone_dingtalk.client.api.base import DingTalkV1API
 
 
-class Chat(DingTalkBaseAPI):
+class ChatAPI(DingTalkV1API):
 
     def create(self,
                title,
                template_id,
                owner_user_id,
-               user_ids,
-               subadmin_ids,
-               uuid,
-               icon,
+               user_ids=None,
+               subadmin_ids=None,
+               uuid=None,
+               icon=None,
                mention_all_authority=0,
                show_history_type=0,
                searchable=0,
@@ -31,8 +31,8 @@ class Chat(DingTalkBaseAPI):
         :param title: 群名称。长度限制为1~20个字符
         :param template_id: 群模板ID，登录开发者后台 > 开放能力 > 场景群 > 群模板查看id。
         :param owner_user_id: 群主的userid。
-        :param user_ids: 群成员userid列表。最多传999个。
-        :param subadmin_ids: 群管理员userid列表。
+        :param user_ids: 群成员userid列表。最多传999个。以逗号分隔
+        :param subadmin_ids: 群管理员userid列表。以逗号分隔
         :param uuid: 建群去重的业务ID，由接口调用方指定。(建议长度在64字符以内。)
         :param icon: 群头像，格式为mediaId。需要调用上传媒体文件接口上传群头像，获取mediaId。
         :param mention_all_authority: @all 权限，0-默认，所有人，1-仅群主可@all
@@ -63,70 +63,32 @@ class Chat(DingTalkBaseAPI):
             "request_id": "ed669urokuvq"
         }
         """
-        return self._post(
-            '/chat/create',
-            {
-                'name': name,
-                'owner': owner,
-                'useridlist': useridlist,
-                'showHistoryType': 1 if show_history_type else 0,
-                'chatBannedType': chat_banned_type,
-                'searchable': searchable,
-                'validationType': validation_type,
-                'mentionAllAuthority': mention_all_authority,
-                'managementType': management_type
-            },
-            result_processor=lambda x: x['chatid']
-        )
-
-    def update(self, chatid, name=None, owner=None, add_useridlist=(), del_useridlist=(), icon='', chat_banned_type=0,
-               searchable=0, validation_type=0, mention_all_authority=0, show_history_type=False, management_type=0):
-        """
-        修改会话
-
-        :param chatid: 群会话的id
-        :param name: 群名称。长度限制为1~20个字符，不传则不修改
-        :param owner: 群主userId，员工唯一标识ID；必须为该会话成员之一；不传则不修改
-        :param add_useridlist: 添加成员列表，每次最多支持40人，群人数上限为1000
-        :param del_useridlist: 删除成员列表，每次最多支持40人，群人数上限为1000
-        :param icon: 群头像mediaid
-        :param chat_banned_type: 群禁言，0-默认，不禁言，1-全员禁言
-        :param searchable: 群可搜索，0-默认，不可搜索，1-可搜索
-        :param validation_type: 入群验证，0：不入群验证（默认） 1：入群验证
-        :param mention_all_authority: @all 权限，0-默认，所有人，1-仅群主可@all
-        :param show_history_type: 新成员是否可查看聊天历史消息（新成员入群是否可查看最近100条聊天记录）
-        :param management_type: 管理类型，0-默认，所有人可管理，1-仅群主可管理
-        :return:
-        """
-        return self._post(
-            '/chat/update',
-            {
-                'chatid': chatid,
-                'name': name,
-                'owner': owner,
-                'add_useridlist': add_useridlist,
-                'del_useridlist': del_useridlist,
+        return self._request(
+            '/topapi/im/chat/scenegroup/create',
+            method='POST',
+            json={
+                'title': title,
+                'template_id': template_id,
+                'owner_user_id': owner_user_id,
+                'user_ids': user_ids,
+                'subadmin_ids': subadmin_ids,
+                'uuid': uuid,
                 'icon': icon,
-                'chatBannedType': chat_banned_type,
+                'mention_all_authority': mention_all_authority,
+                'show_history_type': show_history_type,
+                'validation_type': validation_type,
                 'searchable': searchable,
-                'validationType': validation_type,
-                'mentionAllAuthority': mention_all_authority,
-                'showHistoryType': 1 if show_history_type else 0,
-                'managementType': management_type
+                'chat_banned_type': chat_banned_type,
+                'management_type': management_type,
+                'only_admin_can_ding': only_admin_can_ding,
+                'all_members_can_create_mcs_conf': all_members_can_create_mcs_conf,
+                'all_members_can_create_calendar': all_members_can_create_calendar,
+                'group_email_disabled': group_email_disabled,
+                'only_admin_can_set_msg_top': only_admin_can_set_msg_top,
+                'add_friend_forbidden': add_friend_forbidden,
+                'group_live_switch': group_live_switch,
+                'members_to_admin_chat': members_to_admin_chat
             }
-        )
-
-    def get(self, chatid):
-        """
-        获取会话
-
-        :param chatid: 群会话的id
-        :return: 群会话信息
-        """
-        return self._get(
-            '/chat/get',
-            {'chatid': chatid},
-            result_processor=lambda x: x['chat_info']
         )
 
     def send(self, chatid, msg_body):
@@ -159,3 +121,13 @@ class Chat(DingTalkBaseAPI):
             '/chat/getReadList',
             {"messageId": message_id, "cursor": cursor, "size": size}
         )
+
+
+if __name__ == '__main__':
+    client = ChatAPI()
+    res = client.create(
+        title='测试群',
+        template_id='eea10ee3-733b-43c1-b4f1-29fe04fd1e38',
+        owner_user_id='01465416484027168950'
+    )
+    print(res)
